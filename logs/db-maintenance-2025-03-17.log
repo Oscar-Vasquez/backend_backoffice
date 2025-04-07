@@ -1,0 +1,12 @@
+[2025-03-17T18:58:07.595Z] [INFO] Iniciando servicio de mantenimiento de base de datos
+[2025-03-17T18:58:07.599Z] [INFO] Verificando conexión a la base de datos...
+[2025-03-17T18:58:12.635Z] [INFO] ✅ Conexión a la base de datos establecida
+[2025-03-17T18:58:12.636Z] [INFO] Programando tareas con timezone: America/Mexico_City
+[2025-03-17T18:58:12.636Z] [INFO] Programando optimización de tablas: 0 3 * * *
+[2025-03-17T18:58:12.685Z] [INFO] Programando actualización de estadísticas: 0 */6 * * *
+[2025-03-17T18:58:12.686Z] [INFO] Programando análisis completo: 0 4 * * 0
+[2025-03-17T18:58:12.687Z] [INFO] Ejecutando tareas iniciales para verificar configuración...
+[2025-03-17T18:58:12.687Z] [INFO] Iniciando actualización de estadísticas
+[2025-03-17T18:58:15.320Z] [INFO] ✅ Estadísticas actualizadas para todas las tablas
+[2025-03-17T18:58:15.474Z] [INFO] ✅ Caché de consultas limpiada
+[2025-03-17T18:58:15.616Z] [INFO] Servicio de mantenimiento de base de datos iniciado y ejecutándose

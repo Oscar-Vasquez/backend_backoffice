@@ -1,0 +1,891 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model activities {
+  id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at  DateTime              @default(now()) @db.Timestamptz(6)
+  action      String                @db.VarChar
+  type        activity_type_enum
+  description String?               @db.VarChar
+  ip_address  String?               @db.VarChar
+  user_agent  String?               @db.VarChar
+  status      activity_status_enum? @default(completed)
+  operator_id String?               @db.Uuid
+  branch_id   String?               @db.Uuid
+  entity_type String?               @db.VarChar
+  entity_id   String?               @db.Uuid
+  old_values  Json?
+  new_values  Json?
+  metadata    Json?
+  branches    branches?             @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_activities_branch")
+  operators   operators?            @relation(fields: [operator_id], references: [id], onUpdate: NoAction, map: "fk_activities_operator")
+
+  @@index([branch_id], map: "idx_activities_branch_id")
+  @@index([created_at], map: "idx_activities_created_at")
+  @@index([type, id], map: "idx_activities_entity_type_id")
+  @@index([operator_id], map: "idx_activities_operator_id")
+  @@index([type], map: "idx_activities_type")
+  @@index([operator_id, created_at], map: "idx_activities_operator_created")
+  @@index([type, action], map: "idx_activities_type_action")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model branches {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?             @default(now()) @db.Timestamptz(6)
+  name          String                @db.VarChar
+  address       String?
+  province      String?               @db.VarChar
+  city          String?               @db.VarChar
+  postal_code   String?               @db.VarChar
+  phone         String?               @db.VarChar
+  email         String?               @db.VarChar
+  is_active     Boolean?              @default(true)
+  prefix        String?               @db.VarChar
+  company_id    String                @db.Uuid
+  manager_name  String?               @db.VarChar
+  opening_hours Json?
+  geo_location  Unsupported("point")?
+  timezone      String?               @db.VarChar
+  activities    activities[]
+  companies     companies             @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_branches_company")
+  gift_cards    gift_cards[]
+  invoices      invoices[]
+  operators     operators[]
+  packages      packages[]
+  plans         plans[]
+  products      products[]
+  users         users[]
+  vehicles      vehicles[]
+
+  @@index([company_id], map: "idx_branches_company_id")
+  @@index([is_active], map: "idx_branches_is_active")
+  @@index([name], map: "idx_branches_name")
+  @@index([province], map: "idx_branches_province")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model categories {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at     DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?  @default(now()) @db.Timestamptz(6)
+  name           String     @db.VarChar
+  description    String?
+  icon           String?    @db.VarChar
+  is_active      Boolean?   @default(true)
+  order_position Int?
+  products       products[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model companies {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at    DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?  @default(now()) @db.Timestamptz(6)
+  name          String     @db.VarChar
+  email         String?    @db.VarChar
+  phone         String?    @db.VarChar
+  ruc           String?    @unique @db.VarChar
+  logo_url      String?    @db.VarChar
+  website       String?    @db.VarChar
+  tax_id        String?    @db.VarChar
+  business_type String?    @db.VarChar
+  industry      String?    @db.VarChar
+  founded_date  DateTime?  @db.Date
+  is_active     Boolean?   @default(true)
+  branches      branches[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model email_campaigns {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at         DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?        @default(now()) @db.Timestamptz(6)
+  name               String           @db.VarChar
+  subject            String           @db.VarChar
+  status             String           @default("draft") @db.VarChar
+  recipients         Json?
+  send_to_all        Boolean?         @default(false)
+  tracking           Boolean?         @default(true)
+  tracking_id        String?          @db.Uuid
+  stats              Json?
+  user_id            String?          @db.Uuid
+  template_id        String?          @db.Uuid
+  scheduled_for      DateTime?        @db.Timestamptz(6)
+  sender_name        String?          @db.VarChar
+  sender_email       String?          @db.VarChar
+  reply_to           String?          @db.VarChar
+  segment_criteria   Json?
+  test_recipients    String[]
+  is_recurring       Boolean?         @default(false)
+  recurrence_pattern Json?
+  email_templates    email_templates? @relation(fields: [template_id], references: [id], onUpdate: NoAction, map: "fk_email_campaigns_template")
+  users              users?           @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_email_campaigns_user")
+
+  @@index([scheduled_for], map: "idx_email_campaigns_scheduled_for")
+  @@index([status], map: "idx_email_campaigns_status")
+  @@index([template_id], map: "idx_email_campaigns_template_id")
+  @@index([user_id], map: "idx_email_campaigns_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model email_templates {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?         @default(now()) @db.Timestamptz(6)
+  name            String            @db.VarChar
+  subject         String?           @db.VarChar
+  body            String?
+  html_body       String?
+  elements        Json?
+  editor_settings Json?
+  thumbnail       String?
+  operator_id     String?           @db.Uuid
+  category        String?           @db.VarChar
+  variables       Json?
+  is_default      Boolean?          @default(false)
+  version         Int?              @default(1)
+  email_campaigns email_campaigns[]
+  operators       operators?        @relation(fields: [operator_id], references: [id], onUpdate: NoAction, map: "fk_email_templates_operator")
+
+  @@index([name], map: "idx_email_templates_name")
+  @@index([operator_id], map: "idx_email_templates_operator_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gift_cards {
+  id              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?            @default(now()) @db.Timestamptz(6)
+  code            String               @unique @db.VarChar
+  amount          Decimal              @db.Decimal(10, 2)
+  balance         Decimal?             @db.Decimal(10, 2)
+  status          String               @default("active") @db.VarChar
+  issue_date      DateTime             @default(dbgenerated("CURRENT_DATE")) @db.Date
+  expiry_date     DateTime?            @db.Date
+  recipient_name  String?
+  recipient_email String?              @db.VarChar
+  sender_id       String?              @db.Uuid
+  redeemed_at     DateTime?            @db.Timestamptz(6)
+  message         String?
+  payment_method  payment_method_enum?
+  send_date       DateTime?            @db.Timestamptz(6)
+  design_template String?              @db.VarChar
+  branch_id       String?              @db.Uuid
+  is_reloadable   Boolean?             @default(false)
+  access_pin      String?              @db.VarChar
+  usage_history   Json[]
+  branches        branches?            @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_gift_cards_branch")
+
+  @@index([code], map: "idx_gift_cards_code")
+  @@index([recipient_email], map: "idx_gift_cards_recipient_email")
+  @@index([sender_id], map: "idx_gift_cards_sender_id")
+  @@index([status], map: "idx_gift_cards_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model invoice_items {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+  invoice_id      String    @db.Uuid
+  product_id      String?   @db.Uuid
+  plan_id         String?   @db.Uuid
+  description     String
+  quantity        Int       @default(1)
+  unit_price      Decimal   @db.Decimal(10, 2)
+  total_price     Decimal   @db.Decimal(10, 2)
+  discount_rate   Decimal?  @default(0) @db.Decimal(5, 2)
+  tax_rate        Decimal?  @default(0) @db.Decimal(5, 2)
+  item_order      Int?
+  unit_of_measure String?   @default("unit") @db.VarChar
+  is_taxable      Boolean?  @default(true)
+  serial_numbers  String[]
+  invoices        invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invoice_items_invoice")
+  plans           plans?    @relation(fields: [plan_id], references: [id], onUpdate: NoAction, map: "fk_invoice_items_plan")
+  products        products? @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "fk_invoice_items_product")
+
+  @@index([invoice_id], map: "idx_invoice_items_invoice_id")
+  @@index([plan_id], map: "idx_invoice_items_plan_id")
+  @@index([product_id], map: "idx_invoice_items_product_id")
+}
+
+model invoice_packages {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  invoice_id String    @db.Uuid
+  package_id String    @db.Uuid
+  invoices   invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invoice_packages_invoice")
+  packages   packages  @relation(fields: [package_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_invoice_packages_package")
+
+  @@unique([invoice_id, package_id])
+  @@index([invoice_id], map: "idx_invoice_packages_invoice_id")
+  @@index([package_id], map: "idx_invoice_packages_package_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model invoices {
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at            DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?           @default(now()) @db.Timestamptz(6)
+  invoice_number        String              @unique @db.VarChar
+  issue_date            DateTime            @default(dbgenerated("CURRENT_DATE")) @db.Date
+  due_date              DateTime            @db.Date
+  status                invoice_status_enum @default(draft)
+  is_paid               Boolean?            @default(false)
+  total_amount          Decimal             @db.Decimal(12, 2)
+  tax_amount            Decimal?            @default(0) @db.Decimal(12, 2)
+  discount_amount       Decimal?            @default(0) @db.Decimal(12, 2)
+  user_id               String?             @db.Uuid
+  branch_id             String?             @db.Uuid
+  operator_id           String?             @db.Uuid
+  billing_address       Json?
+  shipping_address      Json?
+  notes                 String?
+  payment_terms         String?             @db.VarChar
+  currency              String?             @default("USD") @db.VarChar
+  conversion_rate       Decimal?            @default(1) @db.Decimal(10, 6)
+  tracking_number       String?             @db.VarChar
+  shipping_method       String?             @db.VarChar
+  invoice_type          invoice_type_enum?  @default(other)
+  commission_amount     Decimal?            @default(0) @db.Decimal(10, 2)
+  marketplace_fee_rate  Decimal?            @default(0) @db.Decimal(5, 2)
+  platform              String?             @db.VarChar
+  external_reference_id String?             @db.VarChar
+  tax_details           Json?
+  price_plan            Decimal             @default(0) @db.Decimal
+  shipping_insurance    Boolean             @default(false)
+  paid_amount           Decimal?            @db.Decimal
+  remaining_amount      Decimal?            @db.Decimal
+  last_payment_date     DateTime?           @db.Timestamptz(6)
+  invoice_items         invoice_items[]
+  invoice_packages      invoice_packages[]
+  branches              branches?           @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_invoices_branch")
+  operators             operators?          @relation(fields: [operator_id], references: [id], onUpdate: NoAction, map: "fk_invoices_operator")
+  users                 users?              @relation(fields: [user_id], references: [id], onUpdate: NoAction, map: "fk_invoices_user")
+  payments              payments[]
+
+  @@index([branch_id], map: "idx_invoices_branch_id")
+  @@index([due_date], map: "idx_invoices_due_date")
+  @@index([invoice_type], map: "idx_invoices_invoice_type")
+  @@index([is_paid], map: "idx_invoices_is_paid")
+  @@index([issue_date], map: "idx_invoices_issue_date")
+  @@index([operator_id], map: "idx_invoices_operator_id")
+  @@index([status], map: "idx_invoices_status")
+  @@index([user_id], map: "idx_invoices_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notification_preferences {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime? @default(now()) @db.Timestamptz(6)
+  user_id             String    @db.Uuid
+  push_enabled        Boolean?  @default(true)
+  email_enabled       Boolean?  @default(true)
+  sms_enabled         Boolean?  @default(false)
+  news_and_updates    Boolean?  @default(true)
+  order_updates       Boolean?  @default(true)
+  promotions          Boolean?  @default(true)
+  security_alerts     Boolean?  @default(true)
+  quiet_hours_start   DateTime? @db.Time(6)
+  quiet_hours_end     DateTime? @db.Time(6)
+  quiet_hours_enabled Boolean?  @default(false)
+  frequency           String?   @default("immediate") @db.VarChar
+  users               users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notification_preferences_user")
+
+  @@index([user_id], map: "idx_notification_preferences_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notification_users {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+  title           String    @db.VarChar
+  message         String    @db.VarChar
+  type            String    @db.VarChar
+  is_read         Boolean?  @default(false)
+  is_deleted      Boolean?  @default(false)
+  user_id         String    @db.Uuid
+  data            Json?
+  priority        String?   @default("normal") @db.VarChar
+  action_url      String?   @db.VarChar
+  icon            String?   @db.VarChar
+  expiry_date     DateTime? @db.Timestamptz(6)
+  requires_action Boolean?  @default(false)
+  users           users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notification_users_user")
+
+  @@index([created_at], map: "idx_notification_users_created_at")
+  @@index([is_read], map: "idx_notification_users_is_read")
+  @@index([type], map: "idx_notification_users_type")
+  @@index([user_id], map: "idx_notification_users_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notifications_operator {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+  title             String
+  message           String
+  is_read           Boolean?  @default(false)
+  operator_id       String    @db.Uuid
+  data              Json?
+  notification_type String?   @default("info") @db.VarChar
+  priority          String?   @default("normal") @db.VarChar
+  action_required   Boolean?  @default(false)
+  action_type       String?   @db.VarChar
+  action_data       Json?
+  expiry_date       DateTime? @db.Timestamptz(6)
+  operators         operators @relation(fields: [operator_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_notifications_operator_operator")
+
+  @@index([created_at], map: "idx_notifications_operator_created_at")
+  @@index([is_read], map: "idx_notifications_operator_is_read")
+  @@index([operator_id], map: "idx_notifications_operator_operator_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model operator_types {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at  DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime?   @default(now()) @db.Timestamptz(6)
+  name        String      @db.VarChar
+  description String?
+  permissions Json?
+  operators   operators[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model operators {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at             DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?                @default(now()) @db.Timestamptz(6)
+  email                  String                   @unique @db.VarChar
+  password               String                   @db.VarChar
+  first_name             String                   @db.VarChar
+  last_name              String                   @db.VarChar
+  phone                  String?                  @db.VarChar
+  photo                  String?                  @db.VarChar
+  role                   operator_role_enum       @default(staff)
+  status                 operator_status_enum     @default(active)
+  last_login_at          DateTime?                @db.Timestamptz(6)
+  branch_id              String                   @db.Uuid
+  type_operator_id       String                   @db.Uuid
+  position               String?                  @db.VarChar
+  hire_date              DateTime?                @db.Date
+  birth_date             DateTime?                @db.Date
+  emergency_contact      Json?
+  skills                 String[]
+  personal_id            String?                  @db.VarChar
+  address                String?
+  activities             activities[]
+  email_templates        email_templates[]
+  invoices               invoices[]
+  notifications_operator notifications_operator[]
+  branches               branches                 @relation(fields: [branch_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_operators_branch")
+  operator_types         operator_types           @relation(fields: [type_operator_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_operators_type")
+  packages               packages[]
+
+  @@index([branch_id], map: "idx_operators_branch_id")
+  @@index([email], map: "idx_operators_email")
+  @@index([last_login_at], map: "idx_operators_last_login")
+  @@index([role], map: "idx_operators_role")
+  @@index([status], map: "idx_operators_status")
+  @@index([branch_id, role, status], map: "idx_operators_branch_role_status")
+  @@index([first_name, last_name], map: "idx_operators_name")
+  @@index([created_at], map: "idx_operators_created_at")
+  @@index([email(ops: raw("gin_trgm_ops"))], map: "idx_operators_email_trigram", type: Gin)
+  @@index([first_name(ops: raw("gin_trgm_ops"))], map: "idx_operators_first_name_trigram", type: Gin)
+  @@index([last_name(ops: raw("gin_trgm_ops"))], map: "idx_operators_last_name_trigram", type: Gin)
+}
+
+model packages {
+  id                      String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at              DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?           @default(now()) @db.Timestamptz(6)
+  user_reference          String?             @db.Uuid
+  package_status          package_status_enum @default(pending)
+  tracking_number         String?             @db.VarChar
+  height                  Decimal?            @db.Decimal(10, 2)
+  width                   Decimal?            @db.Decimal(10, 2)
+  length                  Decimal?            @db.Decimal(10, 2)
+  weight                  Decimal?            @db.Decimal(10, 2)
+  volumetric_weight       Decimal?            @db.Decimal(10, 2)
+  insurance               Boolean?            @default(false)
+  shipping_stages         Json[]
+  branch_id               String?             @db.Uuid
+  notes                   String?
+  declared_value          Decimal?            @default(0) @db.Decimal(12, 2)
+  customs_information     Json?
+  is_fragile              Boolean?            @default(false)
+  estimated_delivery_date DateTime?           @db.Date
+  operator_id             String?             @db.Uuid
+  position                String?
+  invoice_packages        invoice_packages[]
+  branches                branches?           @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_packages_branch")
+  users                   users?              @relation(fields: [user_reference], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_packages_user")
+  operators               operators?          @relation(fields: [operator_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([package_status], map: "idx_packages_package_status")
+  @@index([tracking_number], map: "idx_packages_tracking_number")
+  @@index([user_reference], map: "idx_packages_user_reference")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model payment_types {
+  id                        Int               @id @default(autoincrement())
+  name                      String
+  description               String?
+  is_active                 Boolean?          @default(true)
+  processing_fee_percentage Decimal?          @default(0) @db.Decimal(5, 2)
+  processing_fee_fixed      Decimal?          @default(0) @db.Decimal(5, 2)
+  requires_approval         Boolean?          @default(false)
+  icon                      String?           @db.VarChar
+  payment_methods           payment_methods[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model payments {
+  id                String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  invoice_id        String              @db.Uuid
+  amount            Decimal             @db.Decimal(12, 2)
+  payment_date      DateTime            @default(now()) @db.Timestamptz(6)
+  payment_method    payment_method_enum
+  status            payment_status_enum @default(completed)
+  payment_provider  String?             @db.VarChar
+  currency          String?             @default("USD") @db.VarChar
+  exchange_rate     Decimal?            @default(1) @db.Decimal(10, 6)
+  fees              Decimal?            @default(0) @db.Decimal(10, 2)
+  payer_details     Json?
+  receipt_url       String?             @db.VarChar
+  notes             String?
+  transaction_id    String?             @db.Uuid
+  payment_method_id String?             @db.Uuid
+  payment_methods   payment_methods?    @relation(fields: [payment_method_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_payment_method")
+  invoices          invoices            @relation(fields: [invoice_id], references: [id], onDelete: SetNull, onUpdate: NoAction, map: "fk_payments_invoice")
+  transactions      transactions?       @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transaction")
+
+  @@index([invoice_id], map: "idx_payments_invoice_id")
+  @@index([payment_date], map: "idx_payments_payment_date")
+  @@index([payment_method], map: "idx_payments_payment_method")
+  @@index([status], map: "idx_payments_status")
+  @@index([payment_method_id], map: "idx_payments_payment_method_id")
+  @@index([transaction_id], map: "idx_payments_transaction_id")
+  @@index([transaction_id], map: "idx_payments_transaction_id_uuid")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model plan_addresses {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+  plan_id         String   @db.Uuid
+  address_type    String   @db.VarChar
+  address_line1   String   @db.VarChar
+  address_line2   String   @db.VarChar
+  city            String   @db.VarChar
+  state           String   @db.VarChar
+  country         String   @db.VarChar
+  postal_code     String   @db.VarChar
+  contact_name    String?  @db.VarChar
+  contact_phone   String   @db.VarChar
+  is_primary      Boolean  @default(false)
+  additional_info Json?
+  plans           plans    @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_plan_addresses_plan")
+
+  @@index([address_type], map: "idx_plan_addresses_address_type")
+  @@index([plan_id], map: "idx_plan_addresses_plan_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model plan_features {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime? @default(now()) @db.Timestamptz(6)
+  plan_id        String    @db.Uuid
+  feature_name   String    @db.VarChar
+  feature_value  String?   @db.VarChar
+  is_included    Boolean?  @default(true)
+  limit_quantity Int?
+  description    String?
+  plans          plans     @relation(fields: [plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_plan_features_plan")
+
+  @@index([plan_id], map: "idx_plan_features_plan_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model plans {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at        DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?        @default(now()) @db.Timestamptz(6)
+  name              String           @db.VarChar
+  description       String?
+  price             Decimal          @db.Decimal(10, 2)
+  billing_cycle     String           @default("monthly") @db.VarChar
+  color             String?          @db.VarChar
+  is_active         Boolean?         @default(true)
+  branch_id         String?          @db.Uuid
+  trial_period_days Int?             @default(0)
+  setup_fee         Decimal?         @default(0) @db.Decimal(10, 2)
+  max_users         Int?
+  discounts         Json?
+  invoice_items     invoice_items[]
+  plan_addresses    plan_addresses[]
+  plan_features     plan_features[]
+  branches          branches?        @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_plans_branch")
+  users             users[]
+
+  @@index([branch_id], map: "idx_plans_branch_id")
+  @@index([is_active], map: "idx_plans_is_active")
+  @@index([name], map: "idx_plans_name")
+  @@index([price], map: "idx_plans_price")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model products {
+  id              String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?            @default(now()) @db.Timestamptz(6)
+  name            String               @db.VarChar
+  description     String?
+  price           Decimal              @db.Decimal(10, 2)
+  sale_price      Decimal?             @db.Decimal(10, 2)
+  sku             String?              @unique @db.VarChar
+  barcode         String?              @db.VarChar
+  stock_quantity  Int?                 @default(0)
+  is_active       Boolean?             @default(true)
+  status          product_status_enum? @default(active)
+  category_id     String?              @db.Uuid
+  branch_id       String?              @db.Uuid
+  weight          Decimal?             @db.Decimal(10, 2)
+  dimensions      Json?
+  images          String[]
+  tags            String[]
+  min_stock_alert Int?                 @default(5)
+  manufacturer    String?              @db.VarChar
+  tax_rate        Decimal?             @default(0) @db.Decimal(5, 2)
+  invoice_items   invoice_items[]
+  branches        branches?            @relation(fields: [branch_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_products_branch")
+  categories      categories?          @relation(fields: [category_id], references: [id], onUpdate: NoAction, map: "fk_products_category")
+
+  @@index([branch_id], map: "idx_products_branch_id")
+  @@index([category_id], map: "idx_products_category_id")
+  @@index([is_active], map: "idx_products_is_active")
+  @@index([name], map: "idx_products_name")
+  @@index([price], map: "idx_products_price")
+  @@index([sku], map: "idx_products_sku")
+  @@index([status], map: "idx_products_status")
+}
+
+model type_users {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+  code        String?   @db.VarChar
+  description String?
+  name        String    @db.VarChar
+  permissions Json?
+  users       users[]
+}
+
+/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
+model users {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at               DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime?                  @default(now()) @db.Timestamptz(6)
+  account_status           Boolean?                   @default(true)
+  birth_date               DateTime?                  @db.Timestamp(6)
+  branch_id                String?                    @db.Uuid
+  email                    String?                    @unique @db.VarChar
+  first_name               String?                    @db.VarChar
+  is_email_verified        Boolean?                   @default(false)
+  is_online                Boolean?                   @default(false)
+  is_verified              Boolean?                   @default(false)
+  last_name                String?                    @db.VarChar
+  last_seen                DateTime?                  @db.Timestamp(6)
+  phone                    String?                    @db.VarChar
+  photo_url                String?
+  plan_id                  String?                    @db.Uuid
+  type_user_id             String?                    @db.Uuid
+  shipping_insurance       Boolean                    @default(true)
+  is_business              Boolean?                   @default(false)
+  ruc                      String?                    @unique(map: "unique_ruc") @db.VarChar(20)
+  company_name             String?                    @db.VarChar(255)
+  referral_source_id       String?                    @db.Uuid
+  email_campaigns          email_campaigns[]
+  invoices                 invoices[]
+  notification_preferences notification_preferences[]
+  notification_users       notification_users[]
+  packages                 packages[]
+  saved_cards              saved_cards[]
+  branches                 branches?                  @relation(fields: [branch_id], references: [id], map: "fk_users_branch")
+  plans                    plans?                     @relation(fields: [plan_id], references: [id], map: "fk_users_plan")
+  referral_sources         referral_sources?          @relation(fields: [referral_source_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  type_users               type_users?                @relation(fields: [type_user_id], references: [id], map: "fk_users_type")
+  wallets                  wallets[]
+
+  @@index([account_status], map: "idx_users_account_status")
+  @@index([branch_id], map: "idx_users_branch_id")
+  @@index([email], map: "idx_users_email")
+  @@index([plan_id], map: "idx_users_plan_id")
+  @@index([type_user_id], map: "idx_users_type_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model vehicles {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime? @default(now()) @db.Timestamptz(6)
+  make                  String    @db.VarChar
+  model                 String    @db.VarChar
+  year                  Int?
+  license_plate         String    @unique @db.VarChar
+  status                String    @default("active") @db.VarChar
+  branch_id             String?   @db.Uuid
+  color                 String?   @db.VarChar
+  vin                   String?   @unique @db.VarChar
+  purchase_date         DateTime? @db.Date
+  last_maintenance_date DateTime? @db.Date
+  mileage               Int?
+  fuel_type             String?   @db.VarChar
+  insurance_info        Json?
+  technical_specs       Json?
+  branches              branches? @relation(fields: [branch_id], references: [id], onUpdate: NoAction, map: "fk_vehicles_branch")
+}
+
+model wallets {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime? @default(now()) @db.Timestamptz(6)
+  balance               Decimal?  @default(0) @db.Decimal(12, 2)
+  currency              String?   @default("USD") @db.VarChar
+  is_active             Boolean?  @default(true)
+  last_transaction_date DateTime? @db.Timestamptz(6)
+  user_id               String?   @db.Uuid
+  users                 users?    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model saved_cards {
+  id               Int       @id @default(autoincrement())
+  user_id          String    @db.Uuid
+  card_token       String    @db.VarChar(255)
+  card_type        String?   @db.VarChar(50)
+  cardholder_name  String?   @db.VarChar(100)
+  expiry_month     Int
+  expiry_year      Int
+  brand            String?   @db.VarChar(50)
+  last_four_digits String?   @db.Char(4)
+  is_default       Boolean?  @default(false)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  nick_name        String?   @db.VarChar
+  users            users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model payment_methods {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime?      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?      @default(now()) @db.Timestamptz(6)
+  name            String         @db.VarChar(100)
+  is_active       Boolean?       @default(true)
+  details         Json?
+  payment_type_id Int?
+  payment_types   payment_types? @relation(fields: [payment_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_payment_methods_type_id")
+  payments        payments[]
+  transactions    transactions[]
+}
+
+model transaction_categories {
+  id                           String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at                   DateTime?                @default(now()) @db.Timestamptz(6)
+  updated_at                   DateTime?                @default(now()) @db.Timestamptz(6)
+  name                         String                   @db.VarChar(100)
+  description                  String?
+  parent_id                    String?                  @db.Uuid
+  is_active                    Boolean?                 @default(true)
+  transaction_categories       transaction_categories?  @relation("transaction_categoriesTotransaction_categories", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_transaction_categories transaction_categories[] @relation("transaction_categoriesTotransaction_categories")
+  transactions                 transactions[]
+}
+
+model transactions {
+  id                     String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at             DateTime?               @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime?               @default(now()) @db.Timestamptz(6)
+  description            String?
+  status                 String                  @default("pending") @db.VarChar(50)
+  transaction_date       DateTime?               @default(now()) @db.Timestamptz(6)
+  transaction_type       String                  @db.VarChar(50)
+  reference_id           String?                 @db.Uuid
+  entity_type            String?                 @db.VarChar(50)
+  entity_id              String?                 @db.Uuid
+  payment_method_id      String?                 @db.Uuid
+  metadata               Json?
+  category_id            String?                 @db.Uuid
+  transaction_type_id    String?                 @db.Uuid
+  amount                 Decimal?                @db.Decimal
+  payments               payments[]
+  transaction_categories transaction_categories? @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_category")
+  payment_methods        payment_methods?        @relation(fields: [payment_method_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_transactions_payment_method")
+  transaction_types      transaction_types?      @relation(fields: [transaction_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_trans_type_id")
+
+  @@index([category_id], map: "idx_transactions_category")
+  @@index([transaction_date], map: "idx_transactions_date")
+  @@index([entity_type, entity_id], map: "idx_transactions_entity")
+  @@index([payment_method_id], map: "idx_transactions_payment")
+  @@index([status], map: "idx_transactions_status")
+  @@index([transaction_type_id], map: "idx_transactions_type")
+  @@index([transaction_type_id], map: "idx_transactions_type_id")
+}
+
+model transaction_types {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at      DateTime?      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?      @default(now()) @db.Timestamptz(6)
+  code            String         @unique @db.VarChar(50)
+  name            String         @db.VarChar(100)
+  description     String?
+  affects_balance String         @db.VarChar(10)
+  is_active       Boolean?       @default(true)
+  transactions    transactions[]
+}
+
+model referral_sources {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source_name String  @unique @db.VarChar(50)
+  users       users[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model cash_closures {
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  cash_closures         DateTime @db.Timestamp(6)
+  total_cash            Float    @db.Real
+  total_yappy           Float    @db.Real
+  total_card            Float    @db.Real
+  total_bank_transfer   Float    @db.Real
+  total_digital_wallet  Float    @db.Real
+  total_internal_wallet Float    @db.Real
+  total_credits         Float    @db.Real
+  total_debits          Float    @db.Real
+  final_balance         Float    @db.Real
+  status                String   @db.VarChar
+}
+
+enum activity_status_enum {
+  pending
+  completed
+  failed
+  cancelled
+}
+
+enum activity_type_enum {
+  login
+  logout
+  create
+  update
+  delete
+  view
+}
+
+enum invoice_status_enum {
+  draft
+  sent
+  paid
+  partial
+  overdue
+  cancelled
+}
+
+enum invoice_type_enum {
+  marketplace
+  package
+  other
+}
+
+enum operator_role_enum {
+  admin
+  manager
+  staff
+  guest
+  Contador
+  gerente_de_sucursal
+  programador
+}
+
+enum operator_status_enum {
+  active
+  inactive
+  suspended
+  pending
+}
+
+enum package_status_enum {
+  pending
+  in_transit @map("in transit")
+  delivered
+  returned
+  lost
+  canceled
+}
+
+enum payment_method_enum {
+  cash
+  credit_card
+  debit_card
+  bank_transfer
+  paypal
+  crypto
+  gift_card
+  store_credit
+}
+
+enum payment_status_enum {
+  pending
+  completed
+  failed
+  refunded
+  partially_refunded
+  chargeback
+}
+
+enum priority_enum {
+  low
+  medium
+  high
+  critical
+}
+
+enum product_status_enum {
+  active
+  inactive
+  out_of_stock
+  discontinued
+  coming_soon
+}
+
+enum shipping_status_enum {
+  pending
+  processing
+  shipped
+  delivered
+  returned
+  cancelled
+}

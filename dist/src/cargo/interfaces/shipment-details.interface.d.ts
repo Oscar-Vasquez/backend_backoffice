@@ -1,0 +1,37 @@
+export interface ShipmentDetails {
+    cargo_height?: string;
+    cargo_length?: string;
+    cargo_width?: string;
+    consignee_fullname?: string;
+    consignee_id?: string;
+    datecreated?: string;
+    destination?: string;
+    destionation_id?: string;
+    hash?: string;
+    hast_files?: string;
+    is_communal?: string;
+    mode_id?: string;
+    mode_name?: string;
+    origin_name?: string;
+    origin_shortname?: string;
+    other?: string;
+    parent?: string;
+    photo?: string;
+    receipt?: string;
+    shipment?: string;
+    shipper?: string;
+    status?: string;
+    status_name?: string;
+    total_cft?: string;
+    total_items?: string;
+    total_pcs?: string;
+    total_weight?: string;
+    tracking?: string;
+    unit?: string;
+    vol_weight?: string;
+    vol_weight_kg?: string;
+    message?: string;
+    recordsFiltered?: number;
+    recordsTotal?: number;
+    success?: boolean;
+}
