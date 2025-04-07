@@ -30,7 +30,9 @@
     "db:maintenance": "node src/scripts/schedule-db-maintenance.js",
     "db:connection": "node src/scripts/measure-db-latency.js",
     "db:compare": "node src/scripts/compare-connection-types.js",
-    "db:high-latency": "node src/scripts/optimize-for-high-latency.js"
+    "db:high-latency": "node src/scripts/optimize-for-high-latency.js",
+    "postinstall": "npm rebuild bcrypt --no-build-from-source"
+
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
