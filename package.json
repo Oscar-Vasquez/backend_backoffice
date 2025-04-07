@@ -31,7 +31,7 @@
     "db:connection": "node src/scripts/measure-db-latency.js",
     "db:compare": "node src/scripts/compare-connection-types.js",
     "db:high-latency": "node src/scripts/optimize-for-high-latency.js",
-    "postinstall": "npm rebuild bcrypt --no-build-from-source"
+    "postinstall": "npm rebuild bcrypt --build-from-source"
 
   },
   "dependencies": {
