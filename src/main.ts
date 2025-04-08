@@ -13,14 +13,12 @@ import * as cookieParser from 'cookie-parser';
 import { Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-// Asegurarse que crypto está disponible
-try {
-  if (typeof crypto === 'undefined') {
-    global.crypto = require('crypto');
-    console.log('✅ Crypto polyfill cargado correctamente');
-  }
-} catch (error) {
-  console.warn('⚠️ Error al cargar crypto:', error);
+// Verificar que crypto está disponible
+if (typeof global.crypto === 'undefined') {
+  console.error('❌ ERROR: global.crypto no está definido después de cargar el polyfill');
+  process.exit(1);
+} else {
+  console.log('✅ global.crypto está correctamente definido');
 }
 
 async function bootstrap() {

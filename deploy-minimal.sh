@@ -14,11 +14,37 @@ if ! railway whoami &> /dev/null; then
     railway login
 fi
 
+# Crear el polyfill de crypto
+echo "===== Creando polyfill para crypto ====="
+cat > polyfills.js <<EOL
+// Polyfill para crypto
+try {
+  if (typeof global.crypto === 'undefined') {
+    const nodeCrypto = require('crypto');
+    global.crypto = {
+      getRandomValues: function(buffer) {
+        return nodeCrypto.randomFillSync(buffer);
+      },
+      randomUUID: function() {
+        return nodeCrypto.randomUUID();
+      }
+    };
+    console.log('✅ Polyfill de crypto cargado correctamente');
+  }
+} catch (error) {
+  console.warn('⚠️ Error al cargar el polyfill de crypto:', error);
+}
+module.exports = {};
+EOL
+
 echo "===== Creando Dockerfile mínimo ====="
 cat > Dockerfile.minimal <<EOL
 FROM node:16-alpine
 
 WORKDIR /app
+
+# Copiar polyfill primero
+COPY polyfills.js ./
 
 # Copiar archivos de proyecto
 COPY . .
@@ -34,7 +60,7 @@ RUN npm run build
 # Exponer puerto
 EXPOSE 3000
 
-# Iniciar la aplicación
+# Iniciar la aplicación (sin flags experimentales)
 CMD ["node", "dist/main.js"]
 EOL
 

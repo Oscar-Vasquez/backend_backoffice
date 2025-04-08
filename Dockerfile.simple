@@ -6,6 +6,9 @@ WORKDIR /app
 ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN echo "legacy-peer-deps=true" > .npmrc
 
+# Crear polyfill para crypto
+COPY polyfills.js ./
+
 # Instalar dependencias para compilación
 RUN apk add --no-cache python3 make g++ git
 
@@ -31,5 +34,5 @@ RUN npm run build
 # Exponer el puerto
 EXPOSE 3000
 
-# Iniciar la aplicación con flags experimentales
-CMD ["node", "--experimental-crypto-policy=default", "dist/main.js"] 
+# Iniciar la aplicación sin flags experimentales
+CMD ["node", "--max-old-space-size=2048", "dist/main.js"] 

@@ -15,7 +15,7 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "node --experimental-crypto-policy=default --max-old-space-size=4096 dist/main.js",
+    "startCommand": "node --max-old-space-size=4096 dist/main.js",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
