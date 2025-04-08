@@ -42,8 +42,8 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Agregar ruta para healthcheck
-  app.get('/', (req, res) => {
-    res.send({ status: 'ok', message: 'API is running', timestamp: new Date().toISOString() });
+  app.use('/', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'API is running', timestamp: new Date().toISOString() });
   });
 
   // Configurar WebSocket
