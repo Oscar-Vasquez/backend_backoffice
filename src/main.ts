@@ -41,11 +41,6 @@ async function bootstrap() {
   // Habilitar el middleware de cookies
   app.use(cookieParser());
 
-  // Agregar ruta para healthcheck
-  app.use('/', (req, res) => {
-    res.status(200).json({ status: 'ok', message: 'API is running', timestamp: new Date().toISOString() });
-  });
-
   // Configurar WebSocket
   const ioAdapter = new IoAdapter(app);
   ioAdapter.createIOServer(3004, {
@@ -85,6 +80,11 @@ async function bootstrap() {
     swaggerOptions: {
       persistAuthorization: true,
     },
+  });
+
+  // Agregar ruta para healthcheck (MOVIDA AQUÍ, DESPUÉS de configurar Swagger)
+  app.use('/', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'API is running', timestamp: new Date().toISOString() });
   });
 
   // Configurar archivos estáticos
