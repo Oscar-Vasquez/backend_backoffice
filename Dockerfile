@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN echo "legacy-peer-deps=true" > .npmrc && \
 RUN apk add --no-cache python3 make g++ git curl
 
 # Aumentar el límite de memoria para Node.js
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NODE_OPTIONS="--max-old-space-size=4096 --experimental-crypto-policy=default"
 
 # Configurar NPM para máxima compatibilidad
 RUN npm config set legacy-peer-deps true && \
@@ -71,4 +71,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar con soporte para crypto
-CMD ["node", "--experimental-crypto-policy=default", "dist/main.js"] 
+CMD ["node", "--experimental-crypto-policy=default", "--max-old-space-size=4096", "dist/main.js"] 

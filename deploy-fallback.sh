@@ -23,11 +23,14 @@ cat > railway.json <<EOL
   "\$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile"
+    "dockerfilePath": "Dockerfile",
+    "args": {
+      "NODE_VERSION": "18"
+    }
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "node --experimental-crypto-policy=legacy dist/main.js",
+    "startCommand": "node --experimental-crypto-policy=default --max-old-space-size=2048 dist/main.js",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

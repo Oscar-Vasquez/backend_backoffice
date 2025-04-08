@@ -1,8 +1,9 @@
-FROM node:14-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Crear un .npmrc básico 
+# Crear un .npmrc básico y configurar Node con soporte para crypto
+ENV NODE_OPTIONS="--experimental-crypto-policy=default --max-old-space-size=2048"
 RUN echo "legacy-peer-deps=true" > .npmrc
 
 # Instalar dependencias para compilación
@@ -12,10 +13,10 @@ RUN apk add --no-cache python3 make g++ git
 COPY package.json ./
 COPY prisma ./prisma/
 
-# Instalar solo las dependencias principales
+# Instalar solo las dependencias principales con fuerza
 RUN npm install --only=prod --legacy-peer-deps --force
 
-# Reconstruir bcrypt
+# Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source
 
 # Generar el cliente Prisma
@@ -30,5 +31,5 @@ RUN npm run build
 # Exponer el puerto
 EXPOSE 3000
 
-# Iniciar la aplicación
-CMD ["node", "--experimental-crypto-policy=legacy", "dist/main.js"] 
+# Iniciar la aplicación con flags experimentales
+CMD ["node", "--experimental-crypto-policy=default", "dist/main.js"] 
