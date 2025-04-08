@@ -1,41 +1,59 @@
-# Dependencias
+# Archivos y directorios del sistema
+.git
+.github
+.gitignore
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno y configuración
+.env
+.env.*
+.npmrc
+
+# Archivos de dependencias
 node_modules
 npm-debug.log
 yarn-debug.log
 yarn-error.log
+.pnpm-debug.log
 
 # Archivos de construcción
 dist
 build
+coverage
+.nyc_output
 *.tsbuildinfo
 
-# Control de versiones
-.git
-.github
-.gitignore
+# Archivos de IDE
+.idea
+.vscode
+*.sublime-*
+*.swp
+*.swo
 
-# Entorno y configuración
-.env
-.env.*
+# Archivos de configuración Docker
+Dockerfile
 .dockerignore
 docker-compose.yml
 
-# Archivos del sistema
-.DS_Store
-Thumbs.db
+# Archivos específicos de Railway
+railway.json
+.railway
+.railwayignore
+
+# Archivos de pruebas
+test
+**/*.spec.ts
+**/*.test.ts
 
 # Logs
 logs
 *.log
 
-# Archivos de test
-coverage
-.nyc_output
-test
-
-# IDEs y editores
-.idea
-.vscode
-*.sublime-*
-*.swp
-*.swo 
+# Otros
+compile.sh
+deploy-railway.sh
+README.md
+LICENSE
+*.md
+!swagger-guide.md 
