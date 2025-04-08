@@ -1,0 +1,34 @@
+FROM node:14-alpine
+
+WORKDIR /app
+
+# Crear un .npmrc básico 
+RUN echo "legacy-peer-deps=true" > .npmrc
+
+# Instalar dependencias para compilación
+RUN apk add --no-cache python3 make g++ git
+
+# Copiar package.json y prisma
+COPY package.json ./
+COPY prisma ./prisma/
+
+# Instalar solo las dependencias principales
+RUN npm install --only=prod --legacy-peer-deps --force
+
+# Reconstruir bcrypt
+RUN npm rebuild bcrypt --build-from-source
+
+# Generar el cliente Prisma
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
+# Copiar el resto del código
+COPY . .
+
+# Compilar la aplicación
+RUN npm run build
+
+# Exponer el puerto
+EXPOSE 3000
+
+# Iniciar la aplicación
+CMD ["node", "--experimental-crypto-policy=legacy", "dist/main.js"] 

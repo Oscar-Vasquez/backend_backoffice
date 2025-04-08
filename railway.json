@@ -8,11 +8,14 @@
       "prisma/**",
       "package.json",
       "tsconfig.json"
-    ]
+    ],
+    "args": {
+      "NODE_VERSION": "16"
+    }
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "node --experimental-crypto-policy=default dist/main.js",
+    "startCommand": "node --experimental-crypto-policy=default --max-old-space-size=4096 dist/main.js",
     "healthcheckPath": "/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
