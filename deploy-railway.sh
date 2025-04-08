@@ -21,9 +21,9 @@ if [ ! -f "./prisma/schema.prisma" ]; then
     exit 1
 fi
 
-# Verificar que el nuevo Dockerfile existe
-if [ ! -f "./Dockerfile.railway" ]; then
-    echo "ERROR: No se encontró el archivo Dockerfile.railway"
+# Verificar que el Dockerfile existe
+if [ ! -f "./Dockerfile" ]; then
+    echo "ERROR: No se encontró el archivo Dockerfile"
     exit 1
 fi
 
@@ -31,8 +31,8 @@ echo "===== Limpiando caché de Railway ====="
 # Forzar una reconstrucción limpia
 railway build --clean
 
-echo "===== Iniciando despliegue con nuevo Dockerfile ====="
-# Ejecutar despliegue especificando el Dockerfile
+echo "===== Iniciando despliegue ====="
+# Ejecutar despliegue
 railway up
 
 echo "===== Verificando estado del despliegue ====="
