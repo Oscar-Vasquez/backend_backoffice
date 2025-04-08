@@ -21,6 +21,21 @@ if [ ! -f "./prisma/schema.prisma" ]; then
     exit 1
 fi
 
+# Verificar que el archivo compile.sh existe y es ejecutable
+if [ ! -f "./compile.sh" ]; then
+    echo "ERROR: No se encontró el archivo compile.sh"
+    exit 1
+fi
+chmod +x compile.sh
+
+echo "===== Prueba de compilación local ====="
+# Ejecutar el script de compilación para verificar que funciona correctamente
+./compile.sh
+if [ $? -ne 0 ]; then
+    echo "ERROR: La compilación local falló. Corrige los errores antes de desplegar."
+    exit 1
+fi
+
 echo "===== Configurando variables de entorno para Railway ====="
 # Asegurarse de que las variables de entorno estén configuradas
 railway env | grep DATABASE_URL > /dev/null || echo "ADVERTENCIA: No se encontró DATABASE_URL en Railway. Asegúrate de configurarla."
@@ -34,4 +49,8 @@ echo "Abriendo el panel de proyecto..."
 railway open
 
 echo "Puedes verificar los logs con: railway logs"
-echo "Para verificar el estado de la aplicación: railway status" 
+echo "Para verificar el estado de la aplicación: railway status"
+
+# Obtener los logs inmediatamente después del despliegue
+echo "===== Últimos logs del despliegue ====="
+railway logs 

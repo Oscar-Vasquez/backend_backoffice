@@ -6,8 +6,12 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ 
 
 # Copiar archivos de configuración primero para aprovechar el caché de capas
-COPY package.json package-lock.json* .npmrc ./
+COPY package.json package-lock.json* .npmrc nest-cli.json ./
 COPY prisma ./prisma/
+COPY compile.sh ./
+
+# Hacemos el script ejecutable
+RUN chmod +x compile.sh
 
 # Instalar dependencias con --legacy-peer-deps
 RUN npm install --legacy-peer-deps
@@ -15,17 +19,18 @@ RUN npm install --legacy-peer-deps
 # Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source
 
-# Generar Prisma Client
-RUN npx prisma generate --schema=./prisma/schema.prisma
+# Copiar resto del código fuente
+COPY src ./src/
+COPY tsconfig.json tsconfig.build.json ./
 
-# Copiar resto del código
+# Ejecutar el script de compilación
+RUN ./compile.sh
+
+# Copiar archivos restantes
 COPY . .
-
-# Compilar la aplicación
-RUN npm run build
 
 # Exponer puerto
 EXPOSE 3000
 
 # Comando para iniciar la aplicación
-CMD ["npm", "run", "start:prod"] 
+CMD ["node", "dist/main.js"] 
