@@ -6,25 +6,26 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ 
 
 # Copiar archivos de configuración primero para aprovechar el caché de capas
-COPY package.json yarn.lock* package-lock.json* ./
+COPY package.json package-lock.json* .npmrc ./
+COPY prisma ./prisma/
 
-# Instalar dependencias
-RUN yarn install --frozen-lockfile || npm install
+# Instalar dependencias con --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 # Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source
 
-# Copiar código fuente
+# Generar Prisma Client
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
+# Copiar resto del código
 COPY . .
 
-# Generar Prisma Client
-RUN npx prisma generate
-
 # Compilar la aplicación
-RUN yarn build || npm run build
+RUN npm run build
 
 # Exponer puerto
 EXPOSE 3000
 
 # Comando para iniciar la aplicación
-CMD ["yarn", "start:prod"] 
+CMD ["npm", "run", "start:prod"] 
