@@ -1,12 +1,11 @@
-FROM node:18-alpine as builder
+FROM node:18-alpine
 
-# Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias nativas
+# Instalar dependencias para compilación nativa
 RUN apk add --no-cache python3 make g++ 
 
-# Copiar archivos de configuración
+# Copiar archivos de configuración primero
 COPY package*.json ./
 COPY .npmrc ./
 COPY nest-cli.json ./
@@ -15,6 +14,8 @@ COPY prisma ./prisma/
 
 # Instalar dependencias
 RUN npm install --legacy-peer-deps
+
+# Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source
 
 # Generar Prisma Client
@@ -24,21 +25,17 @@ RUN npx prisma generate --schema=./prisma/schema.prisma
 COPY src ./src/
 
 # Compilar aplicación
-RUN npm run build && ls -la dist/
+RUN npx nest build
 
-# Verificar que la compilación fue exitosa
-RUN test -f dist/main.js || (echo "Compilación fallida: No se encontró dist/main.js" && exit 1)
+# Verificar compilación
+RUN ls -la dist/ && \
+    if [ ! -f "dist/main.js" ]; then \
+      echo "Error: No se encontró dist/main.js"; \
+      exit 1; \
+    fi
 
-# Segunda etapa: imagen de producción
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Copiar solo lo necesario desde la etapa de compilación
-COPY --from=builder /app/node_modules /app/node_modules
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/package*.json /app/
-COPY --from=builder /app/prisma /app/prisma
+# Copiar resto de archivos
+COPY . .
 
 # Exponer puerto
 EXPOSE 3000
