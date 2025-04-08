@@ -2,12 +2,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Crear un .npmrc básico por si no existe
+RUN echo "legacy-peer-deps=true" > .npmrc && \
+    echo "engine-strict=false" >> .npmrc && \
+    echo "node-linker=hoisted" >> .npmrc
+
 # Instalar dependencias para compilación nativa
 RUN apk add --no-cache python3 make g++ 
 
 # Copiar archivos de configuración primero
 COPY package*.json ./
-COPY .npmrc ./
+# No copiamos .npmrc porque ya lo creamos
 COPY nest-cli.json ./
 COPY tsconfig*.json ./
 COPY prisma ./prisma/

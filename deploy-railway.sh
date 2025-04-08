@@ -27,6 +27,16 @@ if [ ! -f "./Dockerfile" ]; then
     exit 1
 fi
 
+# Crear .npmrc si no existe
+if [ ! -f "./.npmrc" ]; then
+    echo "Creando archivo .npmrc..."
+    echo "legacy-peer-deps=true" > .npmrc
+    echo "engine-strict=false" >> .npmrc
+    echo "node-linker=hoisted" >> .npmrc
+    git add .npmrc
+    git commit -m "chore: add .npmrc for Railway deployment"
+fi
+
 echo "===== Limpiando caché de Railway ====="
 # Forzar una reconstrucción limpia
 railway build --clean
