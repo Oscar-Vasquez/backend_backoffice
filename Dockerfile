@@ -42,6 +42,9 @@ RUN npm install --no-audit --no-fund --legacy-peer-deps || \
     (echo "Tercer intento falló, limpiando caché e intentando nuevamente" && \
      npm cache clean --force && npm install --no-audit --no-fund --legacy-peer-deps --force)
 
+# Instalar NestJS CLI globalmente
+RUN npm install -g @nestjs/cli
+
 # Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source || \
     (echo "Falló la reconstrucción de bcrypt, intentando con node-gyp" && \
@@ -57,10 +60,9 @@ RUN npx prisma generate --schema=./prisma/schema.prisma || \
 COPY src ./src/
 
 # Compilar aplicación con reintentos
-RUN npx nest build || \
-    (echo "Falló la compilación, intentando nuevamente con --force" && \
-     npm install @nestjs/cli --no-save && \
-     npx nest build --force)
+RUN nest build || \
+    (echo "Falló la compilación, intentando nuevamente" && \
+     nest build --force)
 
 # Verificar compilación
 RUN ls -la dist/ && \

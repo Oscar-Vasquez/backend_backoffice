@@ -23,6 +23,9 @@ COPY prisma ./prisma/
 # Instalar solo las dependencias principales con fuerza
 RUN npm install --only=prod --legacy-peer-deps --force
 
+# Instalar NestJS CLI globalmente
+RUN npm install -g @nestjs/cli
+
 # Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source
 
@@ -33,7 +36,7 @@ RUN npx prisma generate --schema=./prisma/schema.prisma
 COPY . .
 
 # Compilar la aplicación
-RUN npm run build
+RUN nest build
 
 # Exponer puerto - importante para Railway
 EXPOSE 3000
