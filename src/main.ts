@@ -1,3 +1,6 @@
+// Cargar polyfills primero
+import '../polyfills';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -9,6 +12,16 @@ import * as bodyParser from 'body-parser';
 import * as cookieParser from 'cookie-parser';
 import { Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+// Asegurarse que crypto está disponible
+try {
+  if (typeof crypto === 'undefined') {
+    global.crypto = require('crypto');
+    console.log('✅ Crypto polyfill cargado correctamente');
+  }
+} catch (error) {
+  console.warn('⚠️ Error al cargar crypto:', error);
+}
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');

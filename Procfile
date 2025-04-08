@@ -1,1 +1,1 @@
-web: npm run start:prod 
+web: node --experimental-crypto-policy=default dist/main.js 

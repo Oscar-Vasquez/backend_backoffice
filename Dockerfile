@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:16-alpine
 
 WORKDIR /app
 
@@ -45,5 +45,5 @@ COPY . .
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para iniciar
-CMD ["node", "dist/main.js"] 
+# Comando para iniciar con soporte para crypto
+CMD ["node", "--experimental-crypto-policy=default", "dist/main.js"] 
