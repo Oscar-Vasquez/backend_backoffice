@@ -45,6 +45,9 @@ RUN npm install --no-audit --no-fund --legacy-peer-deps || \
 # Instalar tipos para Express.Multer.File
 RUN npm install --save-dev @types/multer@1.4.12 @types/express@4
 
+# Instalar NestJS CLI globalmente para asegurar que el comando 'nest' esté disponible
+RUN npm install -g @nestjs/cli
+
 # Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source || \
     (echo "Falló la reconstrucción de bcrypt, intentando con node-gyp" && \
@@ -70,7 +73,9 @@ RUN sed -i 's/app\.get\(.\/, *(req, *res) *=> *{/app\.use(\x27\/\x27, (req, res)
 # Compilar aplicación usando npm scripts en lugar de nest build directamente
 RUN npm run build || \
     (echo "La compilación falló, intentando con NODE_OPTIONS adicionales" && \
-     NODE_OPTIONS="--max-old-space-size=4096 --no-warnings" npm run build)
+     NODE_OPTIONS="--max-old-space-size=4096 --no-warnings" npm run build) || \
+    (echo "Segundo intento falló, intentando compilar directamente con tsc" && \
+     npx tsc -p tsconfig.build.json)
 
 # Verificar compilación
 RUN ls -la dist/ && \

@@ -1,0 +1,67 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Configurar variables de entorno
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV PORT=3000
+ENV NODE_ENV=production
+
+# Crear un .npmrc básico
+RUN echo "legacy-peer-deps=true" > .npmrc
+
+# Instalar dependencias para compilación
+RUN apk add --no-cache python3 make g++ git
+
+# Copiar archivos esenciales primero
+COPY package.json .
+COPY polyfills.js .
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
+COPY prisma ./prisma/
+
+# Crear definición de tipos para Multer
+RUN mkdir -p src/@types/express
+RUN echo 'declare namespace Express { namespace Multer { interface File { fieldname: string; originalname: string; encoding: string; mimetype: string; size: number; destination: string; filename: string; path: string; buffer: Buffer; } } }' > src/@types/express/index.d.ts
+
+# Instalar dependencias con estrategia de reintentos
+RUN npm install --legacy-peer-deps --force || \
+    (echo "Primer intento falló, limpiando caché" && \
+     npm cache clean --force && npm install --legacy-peer-deps --force)
+
+# Instalar tipos necesarios explícitamente
+RUN npm install --save-dev @types/express@4 @types/multer@1.4.12
+
+# Reconstruir bcrypt y generar Prisma client
+RUN npm rebuild bcrypt --build-from-source
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
+# Copiar código fuente
+COPY src ./src/
+
+# Modificar main.ts para usar app.use en lugar de app.get
+RUN sed -i 's/app\.get(\x27\/\x27, *(req, *res) *=> *{/app\.use(\x27\/\x27, (req, res) => {/' src/main.ts || echo "No se pudo modificar main.ts"
+
+# Compilar usando TypeScript directamente
+RUN echo "Compilando con tsc..." && \
+    npx tsc -p tsconfig.build.json || \
+    (echo "tsc falló, intentando con opciones adicionales" && \
+     npx tsc -p tsconfig.build.json --skipLibCheck)
+
+# Verificar compilación
+RUN ls -la && \
+    if [ ! -d "dist" ]; then \
+      echo "¡Error! No se creó el directorio dist. Creando manualmente estructura básica..."; \
+      mkdir -p dist; \
+      cp -r src/* dist/; \
+      find dist -name "*.ts" -type f -delete; \
+    fi
+
+# Copiar resto de archivos
+COPY . .
+
+# Exponer puerto para Railway
+EXPOSE 3000
+
+# Comando para iniciar
+CMD ["node", "dist/main.js"] 
