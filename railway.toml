@@ -4,8 +4,8 @@ dockerfilePath = "Dockerfile"
 watchPatterns = ["src/**", "prisma/**", "package.json", "tsconfig.json"]
 
 [deploy]
-startCommand = "node --experimental-crypto-policy=default dist/main.js"
+startCommand = "node dist/main.js"
 healthcheckPath = "/"
-healthcheckTimeout = 300
+healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5 

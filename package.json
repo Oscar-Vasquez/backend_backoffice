@@ -6,12 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build && ls -la dist",
+    "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node --experimental-crypto-policy=default dist/main.js",
+    "start:prod": "node dist/main",
     "dev": "npm run start:dev",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -31,18 +31,18 @@
     "db:connection": "node src/scripts/measure-db-latency.js",
     "db:compare": "node src/scripts/compare-connection-types.js",
     "db:high-latency": "node src/scripts/optimize-for-high-latency.js",
-    "postinstall": "npm rebuild bcrypt --build-from-source && npx prisma generate --schema=./prisma/schema.prisma",
-    "railway:prebuild": "npm rebuild bcrypt --build-from-source && npx prisma generate --schema=./prisma/schema.prisma"
+    "postinstall": "npm rebuild bcrypt --build-from-source"
+
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
-    "@nestjs/common": "^11.0.0",
+    "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.0",
+    "@nestjs/core": "^10.0.0",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^11.0.5",
-    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/platform-express": "^10.4.15",
     "@nestjs/platform-socket.io": "^11.0.7",
     "@nestjs/schedule": "^5.0.1",
     "@nestjs/swagger": "^11.0.3",
@@ -76,9 +76,9 @@
     "uuid": "^11.0.5"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
-    "@nestjs/testing": "^11.0.0",
+    "@nestjs/cli": "^10.0.0",
+    "@nestjs/schematics": "^10.0.0",
+    "@nestjs/testing": "^10.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
     "@types/multer": "^1.4.12",
