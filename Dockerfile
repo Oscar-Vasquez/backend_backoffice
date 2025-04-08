@@ -14,6 +14,8 @@ RUN apk add --no-cache python3 make g++ git curl
 
 # Aumentar el límite de memoria para Node.js
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV PORT=3000
+ENV NODE_ENV=production
 
 # Configurar NPM para máxima compatibilidad
 RUN npm config set legacy-peer-deps true && \
@@ -70,7 +72,7 @@ RUN ls -la dist/ && \
 # Copiar resto de archivos
 COPY . .
 
-# Exponer puerto
+# Exponer puerto - importante para Railway
 EXPOSE 3000
 
 # Comando para iniciar sin la bandera experimental

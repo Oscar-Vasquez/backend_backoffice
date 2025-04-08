@@ -2,8 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Crear un .npmrc básico y configurar Node con soporte para memoria
+# Configurar variables de entorno
 ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV PORT=3000
+ENV NODE_ENV=production
+
+# Crear un .npmrc básico
 RUN echo "legacy-peer-deps=true" > .npmrc
 
 # Crear polyfill para crypto
@@ -31,8 +35,8 @@ COPY . .
 # Compilar la aplicación
 RUN npm run build
 
-# Exponer el puerto
+# Exponer puerto - importante para Railway
 EXPOSE 3000
 
-# Iniciar la aplicación sin flags experimentales
+# Iniciar la aplicación
 CMD ["node", "--max-old-space-size=2048", "dist/main.js"] 

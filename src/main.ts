@@ -28,7 +28,7 @@ async function bootstrap() {
 
   // Configurar CORS
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: '*', // Permitir cualquier origen en producción
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
@@ -40,6 +40,11 @@ async function bootstrap() {
 
   // Habilitar el middleware de cookies
   app.use(cookieParser());
+
+  // Agregar ruta para healthcheck
+  app.get('/', (req, res) => {
+    res.send({ status: 'ok', message: 'API is running', timestamp: new Date().toISOString() });
+  });
 
   // Configurar WebSocket
   const ioAdapter = new IoAdapter(app);
@@ -87,14 +92,14 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('hbs');
 
-  const port = process.env.PORT || 3001;
-  const host = 'localhost';
+  const port = process.env.PORT || 3000;
+  // Escuchar en cualquier interfaz (0.0.0.0) en lugar de solo localhost
   
   try {
-    await app.listen(port, host);
-    console.log(`✅ API REST corriendo en: http://${host}:${port}`);
-    console.log(`📚 Documentación Swagger disponible en: http://${host}:${port}/api/docs`);
-    console.log(`🔌 WebSocket listo en: ws://${host}:3003`);
+    await app.listen(port, '0.0.0.0');
+    console.log(`✅ API REST corriendo en: http://0.0.0.0:${port}`);
+    console.log(`📚 Documentación Swagger disponible en: http://0.0.0.0:${port}/api/docs`);
+    console.log(`🔌 WebSocket listo en: ws://0.0.0.0:3004`);
     logger.log(`🚀 Aplicación iniciada en puerto ${port}`);
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
