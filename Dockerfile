@@ -43,10 +43,7 @@ RUN npm install --no-audit --no-fund --legacy-peer-deps || \
      npm cache clean --force && npm install --no-audit --no-fund --legacy-peer-deps --force)
 
 # Instalar tipos para Express.Multer.File
-RUN npm install --save-dev @types/multer@1.4.12
-
-# Instalar NestJS CLI globalmente
-RUN npm install -g @nestjs/cli
+RUN npm install --save-dev @types/multer@1.4.12 @types/express@4
 
 # Reconstruir bcrypt específicamente
 RUN npm rebuild bcrypt --build-from-source || \
@@ -59,23 +56,21 @@ RUN npx prisma generate --schema=./prisma/schema.prisma || \
      npm install @prisma/client@6.5.0 prisma@6.5.0 --save-exact && \
      npx prisma generate --schema=./prisma/schema.prisma)
 
-# Copiar código fuente
-COPY src ./src/
-
 # Crear un archivo de definición de tipos para Express.Multer.File
 RUN mkdir -p src/@types/express && \
     echo 'declare namespace Express { namespace Multer { interface File { fieldname: string; originalname: string; encoding: string; mimetype: string; size: number; destination: string; filename: string; path: string; buffer: Buffer; } } }' > src/@types/express/index.d.ts
 
-# Configurar la ruta GET / usando un archivo temporal
-RUN sed -i "s/app.get('\/.*}/app.get('\/').controller((req, res) => { res.send({ status: 'ok' }); })/" src/main.ts || echo "No se pudo modificar main.ts"
+# Modificar main.ts para solucionar problema con app.get
+COPY multer.d.ts ./
+COPY src ./src/
 
-# Compilar aplicación con reintentos sin --force
-RUN nest build || \
-    (echo "Falló la compilación, intentando con ignorar errores" && \
-     nest build --skipCheck) || \
-    (echo "Segundo intento falló, asegurando tipos correctos e intentando nuevamente" && \
-     npm install --save-dev @types/express@4 @types/multer@1.4.12 && \
-     npx tsc)
+# Intentar arreglar el error en main.ts
+RUN sed -i 's/app\.get\(.\/, *(req, *res) *=> *{/app\.use(\x27\/\x27, (req, res) => {/' src/main.ts || echo "No se pudo modificar main.ts"
+
+# Compilar aplicación usando npm scripts en lugar de nest build directamente
+RUN npm run build || \
+    (echo "La compilación falló, intentando con NODE_OPTIONS adicionales" && \
+     NODE_OPTIONS="--max-old-space-size=4096 --no-warnings" npm run build)
 
 # Verificar compilación
 RUN ls -la dist/ && \
