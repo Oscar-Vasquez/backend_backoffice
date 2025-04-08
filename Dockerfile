@@ -12,8 +12,8 @@ RUN echo "legacy-peer-deps=true" > .npmrc && \
 # Instalar dependencias para compilación nativa
 RUN apk add --no-cache python3 make g++ git curl
 
-# Aumentar el límite de memoria para Node.js
-ENV NODE_OPTIONS="--max-old-space-size=4096 --experimental-crypto-policy=default"
+# Aumentar el límite de memoria para Node.js (sin la bandera experimental)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Configurar NPM para máxima compatibilidad
 RUN npm config set legacy-peer-deps true && \
@@ -70,5 +70,5 @@ COPY . .
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para iniciar con soporte para crypto
+# Comando para iniciar con soporte para crypto (usamos la bandera aquí)
 CMD ["node", "--experimental-crypto-policy=default", "--max-old-space-size=4096", "dist/main.js"] 

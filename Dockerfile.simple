@@ -2,8 +2,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Crear un .npmrc básico y configurar Node con soporte para crypto
-ENV NODE_OPTIONS="--experimental-crypto-policy=default --max-old-space-size=2048"
+# Crear un .npmrc básico y configurar Node con soporte para memoria
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN echo "legacy-peer-deps=true" > .npmrc
 
 # Instalar dependencias para compilación
