@@ -1,0 +1,16 @@
+# Directorios
+node_modules/
+test/
+logs/
+coverage/
+.git/
+
+# Archivos
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+npm-debug.log
+yarn-debug.log
+yarn-error.log 
