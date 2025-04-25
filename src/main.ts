@@ -31,6 +31,7 @@ async function bootstrap() {
     origin: [
       'https://frontendbackoffice-development.up.railway.app',
       'http://localhost:3000',
+      '192.168.50.1:3000'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
