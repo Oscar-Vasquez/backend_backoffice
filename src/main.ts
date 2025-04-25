@@ -30,7 +30,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://crm.joshtechs.com',
-      'http://192.168.50.1:3000'
+      'http://0.0.0.0:3000'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
