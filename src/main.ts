@@ -29,8 +29,8 @@ async function bootstrap() {
   // Configurar CORS
   app.enableCors({
     origin: [
-      'crm.joshtechs.com',
-      '192.168.50.1:3000'
+      'https://crm.joshtechs.com',
+      'http://192.168.50.1:3000'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
