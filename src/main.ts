@@ -29,8 +29,7 @@ async function bootstrap() {
   // Configurar CORS
   app.enableCors({
     origin: [
-      'https://frontendbackoffice-development.up.railway.app',
-      'http://localhost:3000',
+      'crm.joshtechs.com',
       '192.168.50.1:3000'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
